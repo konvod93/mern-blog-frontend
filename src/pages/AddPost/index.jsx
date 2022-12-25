@@ -14,16 +14,31 @@ import styles from './AddPost.module.scss';
 
 export const AddPost = () => {
   const isAuth = useSelector(selectIsAuth);
-  const imageUrl = '';
+  const [isLoading, setLoading] = React.useState(false);  
   const [value, setValue] = React.useState('');
   const [title, setTitle] = React.useState('');
-  const [tags, setTags] = React.useState(''); 
+  const [tags, setTags] = React.useState('');
+  const [imageUrl, setImageUrl] = React.useState('');
+  const inputFileRef = React.useRef(null); 
 
 
 
-  const handleChangeFile = () => {};
+  const handleChangeFile = async (event) => {
+    try {
+      const formData = new FormData();
+      const file = event.target.files[0];
+      formData.append('image', file);
+      const { data } = await axios.post('/upload', formData);
+      setImageUrl(data.url);
+    } catch (err) {
+      console.warn(err);
+      alert('Ошибка при загрузке файла!')
+    }
+  };
 
-  const onClickRemoveImage = () => {};
+  const onClickRemoveImage = () => {
+    setImageUrl('');
+  };
 
   const onChange = React.useCallback((value) => {
     setValue(value);
@@ -48,20 +63,23 @@ export const AddPost = () => {
     return <Navigate to="/" />
   }
 
+  
+
   return (
     <Paper style={{ padding: 30 }}>
-      <Button variant="outlined" size="large">
+      <Button onClick={() => inputFileRef.current.click()} variant="outlined" size="large">
         Загрузить превью
       </Button>
-      <input type="file" onChange={handleChangeFile} hidden />
+      <input ref={inputFileRef} type="file" onChange={handleChangeFile} hidden />
       {imageUrl && (
+        <>
         <Button variant="contained" color="error" onClick={onClickRemoveImage}>
           Удалить
         </Button>
-      )}
-      {imageUrl && (
         <img className={styles.image} src={`http://localhost:4444${imageUrl}`} alt="Uploaded" />
+        </>
       )}
+      
       <br />
       <br />
       <TextField
